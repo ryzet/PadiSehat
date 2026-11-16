@@ -116,10 +116,12 @@ function buildCategories(products) {
 function buildProductCard(product) {
   const isOut = product.stok === 0;
   const stockLabel = isOut ? 'Stok habis' : product.stok <= 3 ? `Tersisa ${product.stok}` : `Stok ${product.stok}`;
-  const media = h('div', { class: 'card__media' }, [
-    h('span', { class: 'product-emoji', text: CATEGORY_EMOJI[product.kategori] || '🌿', attrs: { 'aria-hidden': 'true' } }),
-    h('span', { class: 'product-emoji__accent', text: product.kategori === 'Benih' ? '🌱' : '🍃', attrs: { 'aria-hidden': 'true' } }),
-  ]);
+  const media = h('div', { class: 'card__media' }, product.imageUrl
+    ? [h('img', { class: 'card__image', attrs: { src: product.imageUrl, alt: product.nama, loading: 'lazy' } })]
+    : [
+        h('span', { class: 'product-emoji', text: CATEGORY_EMOJI[product.kategori] || '🌿', attrs: { 'aria-hidden': 'true' } }),
+        h('span', { class: 'product-emoji__accent', text: product.kategori === 'Benih' ? '🌱' : '🍃', attrs: { 'aria-hidden': 'true' } }),
+      ]);
 
   if (product.unggulan) media.append(h('span', { class: 'badge', text: '★ Unggulan' }));
 
@@ -265,6 +267,7 @@ function buildDashboard(products, onChange) {
   const categories = [...new Set(['Pupuk', 'Benih', 'Bibit', 'Media Tanam', ...products.map((p) => p.kategori)])]
     .sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' }));
   let editingId = null;
+  let selectedImageData = '';
 
   const page = h('section', { class: 'dashboard-page container', attrs: { 'aria-labelledby': 'dashboard-title' } });
   const heading = h('div', { class: 'dashboard-heading' }, [
@@ -318,7 +321,10 @@ function buildDashboard(products, onChange) {
   addField('harga', 'Harga (Rp) *', 'number', { attrs: { min: '0', step: 'any', placeholder: '45000' } });
   addField('stok', 'Stok *', 'number', { attrs: { min: '0', step: '1', placeholder: '24' } });
   addField('deskripsi', 'Deskripsi *', 'textarea');
-  addField('imageUrl', 'Jalur gambar (opsional)', 'text', { required: false, attrs: { placeholder: '/img/nama-produk.svg' } });
+  addField('imageUrl', 'Gambar produk (PNG/JPG, maksimal 2 MB)', 'file', { required: false, attrs: { accept: 'image/png,image/jpeg' } });
+  const imagePreview = h('img', { class: 'dashboard-image-preview', attrs: { alt: 'Pratinjau gambar produk', hidden: '' } });
+  const imageHint = h('p', { class: 'image-upload-hint', text: 'Pilih gambar PNG atau JPG. Gambar akan tersimpan pada browser untuk demo ini.' });
+  fields.imageUrl.parentElement.append(imagePreview, imageHint);
   addField('unggulan', 'Tampilkan sebagai produk unggulan', 'checkbox');
 
   const formActions = h('div', { class: 'form-actions' }, [
@@ -369,6 +375,9 @@ function buildDashboard(products, onChange) {
   function closeForm() {
     editingId = null;
     form.reset();
+    selectedImageData = '';
+    imagePreview.removeAttribute('src');
+    imagePreview.hidden = true;
     clearErrors();
     formPanel.hidden = true;
     formTitle.textContent = 'Tambah Produk';
@@ -377,6 +386,9 @@ function buildDashboard(products, onChange) {
   function openForm(product = null) {
     editingId = product ? product.id : null;
     form.reset();
+    selectedImageData = product?.imageUrl || '';
+    imagePreview.hidden = !selectedImageData;
+    if (selectedImageData) imagePreview.src = selectedImageData;
     clearErrors();
     formTitle.textContent = product ? 'Ubah Produk' : 'Tambah Produk';
     fields.nama.value = product?.nama || '';
@@ -384,12 +396,41 @@ function buildDashboard(products, onChange) {
     fields.harga.value = product ? String(product.harga) : '';
     fields.stok.value = product ? String(product.stok) : '';
     fields.deskripsi.value = product?.deskripsi || '';
-    fields.imageUrl.value = product?.imageUrl || '';
     fields.unggulan.checked = product?.unggulan === true;
     formPanel.hidden = false;
     formPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     fields.nama.focus();
   }
+
+  fields.imageUrl.addEventListener('change', () => {
+    const file = fields.imageUrl.files?.[0];
+    errors.imageUrl.textContent = '';
+    fields.imageUrl.removeAttribute('aria-invalid');
+    if (!file) return;
+    if (!['image/png', 'image/jpeg'].includes(file.type)) {
+      errors.imageUrl.textContent = 'Format gambar harus PNG atau JPG.';
+      fields.imageUrl.setAttribute('aria-invalid', 'true');
+      fields.imageUrl.value = '';
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      errors.imageUrl.textContent = 'Ukuran gambar maksimal 2 MB.';
+      fields.imageUrl.setAttribute('aria-invalid', 'true');
+      fields.imageUrl.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      selectedImageData = String(reader.result || '');
+      imagePreview.src = selectedImageData;
+      imagePreview.hidden = false;
+    };
+    reader.onerror = () => {
+      errors.imageUrl.textContent = 'Gambar gagal dibaca. Silakan pilih ulang.';
+      fields.imageUrl.setAttribute('aria-invalid', 'true');
+    };
+    reader.readAsDataURL(file);
+  });
 
   function validate() {
     clearErrors();
@@ -461,7 +502,7 @@ function buildDashboard(products, onChange) {
       harga: Number(fields.harga.value),
       stok: Number(fields.stok.value),
       deskripsi: fields.deskripsi.value.trim(),
-      imageUrl: fields.imageUrl.value.trim() || previous?.imageUrl || '',
+      imageUrl: selectedImageData || previous?.imageUrl || '',
       unggulan: fields.unggulan.checked,
     };
     const next = editingId
