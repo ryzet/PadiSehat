@@ -1,10 +1,7 @@
-import { SAMPLE_PRODUCTS } from './products.js';
-import { filterProducts } from './store.js';
+import { SAMPLE_PRODUCTS, WHATSAPP_NUMBER } from './products.js';
+import { filterProducts, buildWhatsAppUrl } from './store.js';
 
 const ASSET_BASE = import.meta.env.BASE_URL;
-
-// Nomor contoh untuk demo. GANTI dengan nomor resmi toko sebelum digunakan.
-const WHATSAPP_STORE_NUMBER = '6281234567890';
 
 const CATEGORY_EMOJI = {
   Pupuk: '🪴',
@@ -30,10 +27,6 @@ export function formatRupiah(value) {
   return `Rp ${new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(value)}`;
 }
 
-function buildWhatsAppUrl(product) {
-  const message = `Halo PadiSehat, saya ingin bertanya tentang ${product.nama} (${formatRupiah(product.harga)}). Apakah stoknya tersedia?`;
-  return `https://wa.me/${WHATSAPP_STORE_NUMBER}?text=${encodeURIComponent(message)}`;
-}
 
 function buildHeader() {
   const brand = h('a', { class: 'brand', attrs: { href: '#beranda', 'aria-label': 'PadiSehat, beranda' } }, [
@@ -130,13 +123,22 @@ function buildProductCard(product) {
     h('h3', { class: 'card__title', text: product.nama }),
     h('p', { class: 'card__description', text: product.deskripsi }),
     h('p', { class: 'card__price', text: formatRupiah(product.harga) }),
-    h('a', {
-      class: `button card__button${isOut ? ' card__button--disabled' : ' button--primary'}`,
-      text: 'Pesan via WhatsApp',
-      attrs: isOut
-        ? { 'aria-disabled': 'true', tabindex: '-1' }
-        : { href: buildWhatsAppUrl(product), target: '_blank', rel: 'noopener noreferrer' },
-    }),
+    isOut
+      ? h('button', {
+          class: 'button card__button card__button--disabled',
+          text: 'Stok Habis',
+          attrs: { type: 'button', disabled: '' },
+        })
+      : h('a', {
+          class: 'button card__button button--primary',
+          text: 'Pesan via WhatsApp',
+          attrs: {
+            href: buildWhatsAppUrl(WHATSAPP_NUMBER, product),
+            target: '_blank',
+            rel: 'noopener noreferrer',
+            'aria-label': `Pesan ${product.nama} via WhatsApp`,
+          },
+        }),
   ]);
 
   return h('article', { class: `card${isOut ? ' card--out' : ''}` }, [media, body]);
