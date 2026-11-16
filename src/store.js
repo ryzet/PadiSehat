@@ -135,3 +135,25 @@ export function filterProducts(products, { query = '', kategori = 'Semua Kategor
   const compare = comparators[sort] || comparators.unggulan;
   return filtered.slice().sort(compare);
 }
+
+
+/**
+ * Membuat tautan WhatsApp untuk pemesanan produk.
+ * Nomor wajib memakai format internasional E.164, contoh: +6281234567890.
+ * Mengembalikan URL WhatsApp atau null jika nomor/produk tidak valid.
+ */
+export function buildWhatsAppUrl(nomor, produk) {
+  const phone = typeof nomor === 'string' ? nomor.trim() : '';
+  if (!/^\\+[1-9]\\d{7,14}$/.test(phone)) {
+    throw new Error('Nomor WhatsApp harus memakai format internasional E.164, contoh +6281234567890.');
+  }
+  if (!produk || typeof produk.nama !== 'string' || !produk.nama.trim()) {
+    throw new Error('Data produk tidak valid untuk membuat pesan WhatsApp.');
+  }
+
+  const harga = Number.isFinite(produk.harga)
+    ? ` (Rp ${new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(produk.harga)})`
+    : '';
+  const message = `Halo PadiSehat, saya ingin memesan ${produk.nama.trim()}${harga}. Apakah produk ini tersedia?`;
+  return `https://wa.me/${phone.slice(1)}?text=${encodeURIComponent(message)}`;
+}
