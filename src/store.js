@@ -105,3 +105,33 @@ export function summarize(products) {
     jumlahKategori: kategori.size,
   };
 }
+
+
+/**
+ * Menghasilkan daftar produk sesuai pencarian, kategori, dan urutan.
+ * Fungsi murni: tidak mengubah array/objek sumber maupun state aplikasi.
+ */
+export function filterProducts(products, { query = '', kategori = 'Semua Kategori', sort = 'unggulan' } = {}) {
+  const keyword = String(query).trim().toLocaleLowerCase('id-ID');
+  const selectedCategory = String(kategori).trim().toLocaleLowerCase('id-ID');
+
+  const filtered = products.filter((product) => {
+    const matchesQuery = !keyword || [product.nama, product.kategori, product.deskripsi]
+      .some((value) => String(value ?? '').toLocaleLowerCase('id-ID').includes(keyword));
+    const matchesCategory = !selectedCategory || selectedCategory === 'semua kategori'
+      || String(product.kategori).trim().toLocaleLowerCase('id-ID') === selectedCategory;
+    return matchesQuery && matchesCategory;
+  });
+
+  const collator = new Intl.Collator('id-ID', { sensitivity: 'base', numeric: true });
+  const comparators = {
+    unggulan: (a, b) => Number(b.unggulan === true) - Number(a.unggulan === true) || collator.compare(a.nama, b.nama),
+    nama: (a, b) => collator.compare(a.nama, b.nama),
+    'nama-desc': (a, b) => collator.compare(b.nama, a.nama),
+    'harga-asc': (a, b) => a.harga - b.harga || collator.compare(a.nama, b.nama),
+    'harga-desc': (a, b) => b.harga - a.harga || collator.compare(a.nama, b.nama),
+    'stok-asc': (a, b) => a.stok - b.stok || collator.compare(a.nama, b.nama),
+  };
+  const compare = comparators[sort] || comparators.unggulan;
+  return filtered.slice().sort(compare);
+}
