@@ -1,5 +1,5 @@
 import { SAMPLE_PRODUCTS, WHATSAPP_NUMBER } from './products.js';
-import { filterProducts, buildWhatsAppUrl } from './store.js';
+import { filterProducts, buildWhatsAppUrl, summarize, saveProducts, createSeedProducts, importProductsJson, exportProductsJson, getStorageNotice } from './store.js';
 
 const ASSET_BASE = import.meta.env.BASE_URL;
 
@@ -39,14 +39,14 @@ function buildHeader(activeView, navigate) {
     h('a', { class: `nav__link${activeView === 'katalog' ? ' nav__link--active' : ''}`, text: 'Katalog', attrs: { href: '#katalog', 'aria-current': activeView === 'katalog' ? 'page' : null } }),
     h('a', { class: `nav__link${activeView === 'dashboard' ? ' nav__link--active' : ''}`, text: 'Dashboard', attrs: { href: '#dashboard', 'aria-current': activeView === 'dashboard' ? 'page' : null } }),
   ]);
-  nav.querySelectorAll('a').forEach((link, index) => {
+  nav.querySelectorAll('button').forEach((link, index) => {
     link.addEventListener('click', (event) => {
       event.preventDefault();
       navigate(index === 0 ? 'katalog' : 'dashboard');
     });
   });
 
-  const cta = h('a', { class: 'header__cta', text: activeView === 'dashboard' ? 'Lihat Toko' : 'Kelola Produk', attrs: { href: activeView === 'dashboard' ? '#katalog' : '#dashboard' } });
+  const cta = h('button', { class: 'header__cta', text: activeView === 'dashboard' ? 'Lihat Toko' : 'Kelola Produk', attrs: { type: 'button' } });
   cta.addEventListener('click', (event) => {
     event.preventDefault();
     navigate(activeView === 'dashboard' ? 'katalog' : 'dashboard');
@@ -335,7 +335,11 @@ function buildDashboard(products, onChange) {
       h('h2', { class: 'dashboard-panel-title', text: 'Daftar Produk' }),
       h('p', { class: 'dashboard-table-note', text: 'Perubahan di sini langsung diperbarui pada katalog publik.' }),
     ]),
-    h('button', { class: 'button button--secondary reset-demo-button', text: 'Reset Data Contoh', attrs: { type: 'button' } }),
+    h('div', { class: 'dashboard-data-actions' }, [
+      h('button', { class: 'button button--secondary export-json-button', text: 'Export JSON', attrs: { type: 'button' } }),
+      h('button', { class: 'button button--secondary import-json-button', text: 'Import JSON', attrs: { type: 'button' } }),
+      h('button', { class: 'button button--secondary reset-demo-button', text: 'Reset Demo', attrs: { type: 'button' } }),
+    ]),
   ]);
   const tableWrap = h('div', { class: 'table-scroll' });
   const table = h('table', { class: 'dashboard-table' });
@@ -345,7 +349,7 @@ function buildDashboard(products, onChange) {
   tableWrap.append(table);
   tablePanel.append(tableHeading, tableWrap);
 
-  const note = h('p', { class: 'dashboard-storage-note', text: 'Mode demo: data disimpan pada localStorage di perangkat ini. Tidak menggunakan login, password, sesi, atau backend.' });
+  const note = h('p', { class: 'dashboard-storage-note', text: 'Mode demo: data disimpan pada localStorage perangkat ini dengan key padisehat:products:v1. Tidak menggunakan login, password, sesi, atau backend.' });
 
   function metricCard(emoji, value, label) {
     return h('article', { class: 'metric-card' }, [
@@ -466,6 +470,38 @@ function buildDashboard(products, onChange) {
     onChange(next, editingId ? 'Produk berhasil diperbarui.' : 'Produk berhasil ditambahkan.');
   });
 
+  const importInput = h('input', { attrs: { type: 'file', accept: 'application/json,.json', hidden: '' } });
+  tableHeading.append(importInput);
+
+  tableHeading.querySelector('.export-json-button').addEventListener('click', () => {
+    try {
+      const blob = new Blob([exportProductsJson(products)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = h('a', { attrs: { href: url, download: 'padisehat-products.json' } });
+      document.body.append(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      window.alert(error.message || 'Data gagal diekspor.');
+    }
+  });
+
+  tableHeading.querySelector('.import-json-button').addEventListener('click', () => importInput.click());
+  importInput.addEventListener('change', async () => {
+    const file = importInput.files?.[0];
+    if (!file) return;
+    try {
+      const imported = importProductsJson(await file.text());
+      if (!window.confirm(`Impor ${imported.length} produk? Data produk saat ini akan diganti.`)) return;
+      onChange(imported, 'Data JSON berhasil diimpor.');
+    } catch (error) {
+      window.alert(error.message || 'Impor gagal. Data lama tetap aman.');
+    } finally {
+      importInput.value = '';
+    }
+  });
+
   tableHeading.querySelector('.reset-demo-button').addEventListener('click', () => {
     if (!window.confirm('Pulihkan delapan produk contoh? Semua perubahan produk saat ini akan diganti.')) return;
     onChange(createSeedProducts(), 'Data contoh berhasil dipulihkan.');
@@ -495,7 +531,7 @@ function buildFooter() {
 export function renderApp(root, { products = SAMPLE_PRODUCTS } = {}) {
   let currentProducts = products.map((product) => ({ ...product }));
   let activeView = 'katalog';
-  let toastMessage = '';
+  let toastMessage = getStorageNotice();
 
   const render = () => {
     const navigate = (view) => {
