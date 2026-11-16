@@ -1,0 +1,60 @@
+
+/* PadiSehat commerce: account, product detail and secure transfer flow */
+.shop-open { overflow: hidden; }
+.shop-overlay {
+  position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center;
+  padding: 20px; background: rgba(20, 43, 27, .64); backdrop-filter: blur(8px);
+}
+.shop-overlay[hidden] { display: none; }
+.shop-dialog {
+  position: relative; width: min(100%, 760px); max-height: min(90vh, 900px); overflow: auto;
+  padding: clamp(22px, 5vw, 42px); border: 1px solid #d9e4d2; border-radius: 28px;
+  background: #fffdf7; box-shadow: 0 30px 100px rgba(11, 35, 18, .28);
+}
+.shop-title { padding-right: 44px; margin: 0 0 20px; color: #183d26; font-size: clamp(1.65rem, 4vw, 2.3rem); }
+.shop-close {
+  position: absolute; top: 16px; right: 18px; width: 42px; height: 42px; border: 0;
+  border-radius: 50%; background: #e9f1e2; color: #183d26; font-size: 28px; cursor: pointer;
+}
+.shop-content { color: #405344; }
+.shop-form { display: grid; gap: 15px; }
+.shop-copy { margin: 0 0 4px; color: #526557; }
+.shop-field { display: grid; gap: 7px; color: #253f2d; font-size: 13px; font-weight: 700; }
+.shop-field input, .shop-field textarea {
+  width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid #cbd8c8;
+  border-radius: 12px; background: white; color: #183d26; font: inherit; font-weight: 500;
+}
+.shop-field textarea { min-height: 92px; resize: vertical; }
+.shop-field input:focus, .shop-field textarea:focus { outline: 3px solid #b7d4aa; border-color: #43834b; }
+.shop-submit { min-height: 50px; margin-top: 4px; border: 0; }
+.shop-link { justify-self: start; padding: 5px 0; border: 0; background: none; color: #347341; font: inherit; font-weight: 700; cursor: pointer; }
+.shop-message { min-height: 1.4em; margin: 0; color: #4b6450; font-size: 13px; }
+.shop-error { color: #a33226; }
+.shop-product { display: grid; grid-template-columns: minmax(180px, .85fr) 1fr; gap: clamp(20px, 4vw, 36px); align-items: center; }
+.shop-product__cover { display: grid; min-height: 240px; place-items: center; overflow: hidden; border-radius: 22px; background: linear-gradient(140deg, #e6efdc, #fbf2cf); font-size: 80px; }
+.shop-product__cover img { width: 100%; height: 100%; min-height: 240px; max-height: 320px; object-fit: cover; }
+.shop-product__details { display: grid; gap: 12px; }
+.shop-product__details h3 { color: #183d26; font-size: 1.55rem; }
+.shop-product__details p { line-height: 1.7; }
+.shop-kicker { color: #698048; font-size: 11px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+.shop-price { color: #286b36; font-size: 1.45rem; }
+.shop-stock { color: #477248; font-size: 13px; font-weight: 700; }
+.shop-actions { display: grid; gap: 10px; margin-top: 5px; }
+.shop-actions .button { width: 100%; }
+.shop-actions button:disabled { cursor: not-allowed; opacity: .5; }
+.commerce-question { display: block; margin-top: 10px; color: #57705c; font-size: 12px; font-weight: 700; text-align: center; text-decoration: underline; text-underline-offset: 3px; }
+.shop-bank { display: grid; gap: 6px; padding: 20px; border: 1px dashed #9cb58d; border-radius: 18px; background: #f1f6e9; }
+.shop-account-number { color: #1e4b2b; font-size: 1.5rem; letter-spacing: .04em; }
+.shop-order-list { display: grid; gap: 12px; }
+.shop-order { display: grid; grid-template-columns: 1fr auto; gap: 5px 16px; padding: 16px; border: 1px solid #e0e8dc; border-radius: 14px; background: white; }
+.shop-order span:last-child { grid-column: 1 / -1; color: #65805e; font-size: 13px; text-transform: capitalize; }
+.shop-success-mark { font-size: 42px; }
+.shop-account { margin-left: auto; white-space: nowrap; }
+@media (max-width: 640px) {
+  .shop-overlay { padding: 10px; align-items: end; }
+  .shop-dialog { width: 100%; max-height: 92vh; padding: 24px 20px 28px; border-radius: 24px 24px 18px 18px; }
+  .shop-product { grid-template-columns: 1fr; }
+  .shop-product__cover, .shop-product__cover img { min-height: 160px; max-height: 190px; }
+  .shop-account { min-height: 38px; padding-inline: 10px; font-size: 11px; }
+  .commerce-question { margin-bottom: 4px; }
+}
