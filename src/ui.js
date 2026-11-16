@@ -1,16 +1,18 @@
+import { SAMPLE_PRODUCTS } from './products.js';
+
 const ASSET_BASE = import.meta.env.BASE_URL;
 
-/** Format Rupiah tanpa desimal, contoh: 45000 -> "Rp 45.000". */
-export function formatRupiah(value) {
-  const number = Number(value);
-  if (!Number.isFinite(number)) return 'Rp 0';
-  const formatted = new Intl.NumberFormat('id-ID', {
-    maximumFractionDigits: 0,
-  }).format(Math.round(number));
-  return `Rp ${formatted}`;
-}
+// Nomor contoh untuk demo. GANTI dengan nomor resmi toko sebelum digunakan.
+const WHATSAPP_STORE_NUMBER = '6281234567890';
 
-function h(tag, options = {}, children = []) {
+const CATEGORY_EMOJI = {
+  Pupuk: '🪴',
+  Benih: '🌾',
+  Bibit: '🌱',
+  'Media Tanam': '🪵',
+};
+
+const h = (tag, options = {}, children = []) => {
   const element = document.createElement(tag);
   if (options.class) element.className = options.class;
   if (options.text !== undefined) element.textContent = options.text;
@@ -19,175 +21,138 @@ function h(tag, options = {}, children = []) {
       if (value !== undefined && value !== null) element.setAttribute(name, value);
     }
   }
-  for (const child of [].concat(children)) {
-    if (child) element.append(child);
-  }
+  for (const child of [].concat(children)) if (child) element.append(child);
   return element;
+};
+
+export function formatRupiah(value) {
+  return `Rp ${new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(value)}`;
 }
 
-function resolveImageUrl(imageUrl) {
-  if (!imageUrl) return '';
-  return `${ASSET_BASE}${imageUrl.replace(/^\/+/, '')}`;
-}
-
-function initialsOf(nama) {
-  return nama
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0])
-    .join('')
-    .toUpperCase();
-}
-
-function describeStock(stok) {
-  if (stok === 0) return { label: 'Stok habis', variant: 'out' };
-  if (stok <= 3) return { label: `stok tersisa ${stok}`, variant: 'low' };
-  return { label: `stok ${stok}`, variant: 'ok' };
-}
-
-function buildProductCard(product) {
-  const stock = describeStock(product.stok);
-  const media = h('div', { class: 'card__media' });
-  const imageUrl = resolveImageUrl(product.imageUrl);
-
-  if (imageUrl) {
-    const image = h('img', {
-      class: 'card__image',
-      attrs: {
-        src: imageUrl,
-        alt: product.nama,
-        loading: 'lazy',
-        width: '800',
-        height: '600',
-      },
-    });
-    image.addEventListener('error', () => {
-      image.replaceWith(
-        h('div', {
-          class: 'card__fallback',
-          text: initialsOf(product.nama),
-          attrs: { 'aria-hidden': 'true' },
-        }),
-      );
-    });
-    media.append(image);
-  } else {
-    media.append(
-      h('div', {
-        class: 'card__fallback',
-        text: initialsOf(product.nama),
-        attrs: { 'aria-hidden': 'true' },
-      }),
-    );
-  }
-
-  if (product.unggulan) {
-    media.append(h('span', { class: 'badge', text: '★ Unggulan' }));
-  }
-
-  const meta = h('p', { class: 'card__meta' }, [
-    h('span', { text: product.kategori }),
-    h('span', { class: 'card__dot', text: '·', attrs: { 'aria-hidden': 'true' } }),
-    h('span', {
-      class: `card__stock card__stock--${stock.variant}`,
-      text: stock.label,
-    }),
-  ]);
-
-  const body = h('div', { class: 'card__body' }, [
-    meta,
-    h('h3', { class: 'card__title', text: product.nama }),
-    h('p', { class: 'card__price', text: formatRupiah(product.harga) }),
-  ]);
-
-  return h(
-    'article',
-    {
-      class: product.stok === 0 ? 'card card--out' : 'card',
-      attrs: { 'aria-label': product.nama },
-    },
-    [media, body],
-  );
+function buildWhatsAppUrl(product) {
+  const message = `Halo PadiSehat, saya ingin bertanya tentang ${product.nama} (${formatRupiah(product.harga)}). Apakah stoknya tersedia?`;
+  return `https://wa.me/${WHATSAPP_STORE_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
 function buildHeader() {
-  const logo = h(
-    'a',
-    { class: 'brand', attrs: { href: '#produk', 'aria-label': 'PADISEHAT, ke katalog' } },
-    [
-      h('span', { class: 'brand__mark', text: '🌾', attrs: { 'aria-hidden': 'true' } }),
-      h('span', { class: 'brand__name', text: 'PADISEHAT' }),
-    ],
-  );
+  const brand = h('a', { class: 'brand', attrs: { href: '#beranda', 'aria-label': 'PadiSehat, beranda' } }, [
+    h('span', { class: 'brand__mark', text: '🌾', attrs: { 'aria-hidden': 'true' } }),
+    h('span', { class: 'brand__name', text: 'PADISEHAT' }),
+  ]);
 
-  const nav = h('nav', { attrs: { 'aria-label': 'Navigasi utama' } }, [
-    h('ul', { class: 'nav__list' }, [
-      h('li', {}, [
-        h('a', {
-          class: 'nav__link nav__link--active',
-          text: 'Katalog',
-          attrs: { href: '#produk', 'aria-current': 'page' },
-        }),
-      ]),
-    ]),
+  const nav = h('nav', { class: 'site-nav', attrs: { 'aria-label': 'Navigasi utama' } }, [
+    h('a', { class: 'nav__link nav__link--active', text: 'Beranda', attrs: { href: '#beranda' } }),
+    h('a', { class: 'nav__link', text: 'Kategori', attrs: { href: '#kategori' } }),
+    h('a', { class: 'nav__link', text: 'Katalog', attrs: { href: '#produk' } }),
   ]);
 
   return h('header', { class: 'site-header' }, [
-    h('div', { class: 'container header__inner' }, [logo, nav]),
+    h('div', { class: 'container header__inner' }, [brand, nav,
+      h('a', { class: 'header__cta', text: 'Lihat Produk', attrs: { href: '#produk' } }),
+    ]),
   ]);
 }
 
 function buildHero() {
   const copy = h('div', { class: 'hero__copy' }, [
-    h('p', { class: 'hero__eyebrow', text: 'Katalog Pertanian' }),
-    h('h1', { class: 'hero__title', text: 'Pupuk & bibit untuk panen yang lebih sehat' }),
-    h('p', {
-      class: 'hero__text',
-      text: 'Pilih kebutuhan kebunmu, dari pupuk, benih, bibit, hingga media tanam.',
-    }),
-    h('a', { class: 'button button--primary', text: 'Lihat Produk', attrs: { href: '#produk' } }),
+    h('p', { class: 'hero__eyebrow', text: 'SAHABAT PETANI LOKAL' }),
+    h('h1', { class: 'hero__title', text: 'Rawat tanaman, tumbuhkan harapan bersama PadiSehat.' }),
+    h('p', { class: 'hero__text', text: 'Temukan pupuk, benih, dan bibit pilihan untuk mendukung kebutuhan kebun dan lahan pertanianmu.' }),
+    h('div', { class: 'hero__actions' }, [
+      h('a', { class: 'button button--primary', text: 'Jelajahi Katalog', attrs: { href: '#produk' } }),
+      h('a', { class: 'button button--secondary', text: 'Lihat Kategori', attrs: { href: '#kategori' } }),
+    ]),
+    h('p', { class: 'hero__note', text: 'Pilihan kebutuhan pertanian dalam satu tempat.' }),
   ]);
 
-  const emojis = ['🌾', '🌱', '🧑‍🌾', '🚜', '🌻', '🍅'];
-  const art = h(
-    'div',
-    { class: 'hero__art', attrs: { 'aria-hidden': 'true' } },
-    emojis.map((emoji, index) =>
-      h('span', {
-        class: `hero__emoji hero__emoji--${index + 1}`,
-        text: emoji,
-      }),
-    ),
-  );
+  const art = h('div', { class: 'hero__art', attrs: { 'aria-hidden': 'true' } }, [
+    h('span', { class: 'hero__emoji hero__emoji--large', text: '🌾' }),
+    h('span', { class: 'hero__emoji', text: '🌱' }),
+    h('span', { class: 'hero__emoji', text: '🚜' }),
+    h('span', { class: 'hero__emoji', text: '🌻' }),
+    h('span', { class: 'hero__emoji', text: '🍅' }),
+    h('span', { class: 'hero__emoji', text: '🧑‍🌾' }),
+  ]);
 
-  return h('section', { class: 'hero' }, [h('div', { class: 'container hero__inner' }, [copy, art])]);
+  return h('section', { class: 'hero container', attrs: { id: 'beranda', 'aria-labelledby': 'hero-title' } }, [
+    h('div', { class: 'hero__inner' }, [
+      h('div', { class: 'hero__copy' }, [
+        copy.children[0],
+        h('h1', { class: 'hero__title', text: 'Rawat tanaman, tumbuhkan harapan bersama PadiSehat.', attrs: { id: 'hero-title' } }),
+        ...Array.from(copy.children).slice(2),
+      ]),
+      art,
+    ]),
+  ]);
 }
 
-function buildCatalog(products, summary) {
-  const heading = h('div', { class: 'section__head' }, [
-    h('h2', {
-      class: 'section__title',
-      text: 'Semua Produk',
-      attrs: { id: 'produk-judul' },
-    }),
-    h('p', {
-      class: 'section__meta',
-      text: `${summary.totalProduk} produk · ${summary.jumlahKategori} kategori`,
+function buildCategories(products) {
+  const categories = [...new Set(products.map((product) => product.kategori))].sort((a, b) => a.localeCompare(b, 'id'));
+  const categoryItems = categories.map((category) => {
+    const count = products.filter((product) => product.kategori === category).length;
+    return h('a', { class: 'category-card', attrs: { href: '#produk', 'aria-label': `${category}, ${count} produk` } }, [
+      h('span', { class: 'category-card__emoji', text: CATEGORY_EMOJI[category] || '🌿', attrs: { 'aria-hidden': 'true' } }),
+      h('span', { class: 'category-card__name', text: category }),
+      h('span', { class: 'category-card__count', text: `${count} produk` }),
+    ]);
+  });
+
+  return h('section', { class: 'section category-section container', attrs: { id: 'kategori', 'aria-labelledby': 'kategori-title' } }, [
+    h('div', { class: 'section__head' }, [
+      h('div', {}, [
+        h('p', { class: 'section__eyebrow', text: 'PILIH SESUAI KEBUTUHAN' }),
+        h('h2', { class: 'section__title', text: 'Jelajahi Kategori', attrs: { id: 'kategori-title' } }),
+      ]),
+      h('p', { class: 'section__meta', text: `${categories.length} kategori tersedia` }),
+    ]),
+    h('div', { class: 'category-grid' }, categoryItems),
+  ]);
+}
+
+function buildProductCard(product) {
+  const isOut = product.stok === 0;
+  const stockLabel = isOut ? 'Stok habis' : product.stok <= 3 ? `Tersisa ${product.stok}` : `Stok ${product.stok}`;
+  const media = h('div', { class: 'card__media' }, [
+    h('span', { class: 'product-emoji', text: CATEGORY_EMOJI[product.kategori] || '🌿', attrs: { 'aria-hidden': 'true' } }),
+    h('span', { class: 'product-emoji__accent', text: product.kategori === 'Benih' ? '🌱' : '🍃', attrs: { 'aria-hidden': 'true' } }),
+  ]);
+
+  if (product.unggulan) media.append(h('span', { class: 'badge', text: '★ Unggulan' }));
+
+  const meta = h('div', { class: 'card__meta' }, [
+    h('span', { class: 'card__category', text: product.kategori }),
+    h('span', { class: `card__stock card__stock--${isOut ? 'out' : product.stok <= 3 ? 'low' : 'ok'}`, text: stockLabel }),
+  ]);
+
+  const body = h('div', { class: 'card__body' }, [
+    meta,
+    h('h3', { class: 'card__title', text: product.nama }),
+    h('p', { class: 'card__description', text: product.deskripsi }),
+    h('p', { class: 'card__price', text: formatRupiah(product.harga) }),
+    h('a', {
+      class: `button card__button${isOut ? ' card__button--disabled' : ' button--primary'}`,
+      text: 'Pesan via WhatsApp',
+      attrs: isOut
+        ? { 'aria-disabled': 'true', tabindex: '-1' }
+        : { href: buildWhatsAppUrl(product), target: '_blank', rel: 'noopener noreferrer' },
     }),
   ]);
 
-  const grid = h(
-    'div',
-    { class: 'product-grid' },
-    products.map((product) => buildProductCard(product)),
-  );
+  return h('article', { class: `card${isOut ? ' card--out' : ''}` }, [media, body]);
+}
 
-  return h(
-    'section',
-    { class: 'section', attrs: { id: 'produk', 'aria-labelledby': 'produk-judul' } },
-    [h('div', { class: 'container' }, [heading, grid])],
-  );
+function buildCatalog(products) {
+  return h('section', { class: 'section catalog-section container', attrs: { id: 'produk', 'aria-labelledby': 'produk-title' } }, [
+    h('div', { class: 'section__head' }, [
+      h('div', {}, [
+        h('p', { class: 'section__eyebrow', text: 'PRODUK PILIHAN' }),
+        h('h2', { class: 'section__title', text: 'Kebutuhan Pertanianmu', attrs: { id: 'produk-title' } }),
+        h('p', { class: 'section__intro', text: 'Produk pilihan untuk membantu aktivitas tanam dari awal hingga perawatan.' }),
+      ]),
+      h('p', { class: 'section__meta', text: `Menampilkan ${products.length} produk` }),
+    ]),
+    h('div', { class: 'product-grid' }, products.map(buildProductCard)),
+  ]);
 }
 
 function buildFooter() {
@@ -195,26 +160,26 @@ function buildFooter() {
     h('div', { class: 'container footer__inner' }, [
       h('div', {}, [
         h('p', { class: 'footer__brand', text: '🌾 PADISEHAT' }),
-        h('p', {
-          class: 'footer__text',
-          text: 'Katalog latihan untuk kebutuhan pupuk dan tanaman.',
-        }),
+        h('p', { class: 'footer__text', text: 'Teman tumbuh untuk kebutuhan pertanian lokal.' }),
       ]),
-      h('p', {
-        class: 'footer__note',
-        text: 'Data produk disimpan di perangkat ini (localStorage).',
-      }),
+      h('div', { class: 'footer__links' }, [
+        h('a', { text: 'Kategori', attrs: { href: '#kategori' } }),
+        h('a', { text: 'Katalog Produk', attrs: { href: '#produk' } }),
+      ]),
+      h('p', { class: 'footer__note', text: 'Harga dan stok pada katalog ini merupakan data contoh.' }),
     ]),
   ]);
 }
 
-/** Merender seluruh tampilan katalog ke dalam elemen root. */
-export function renderApp(root, { products, summary }) {
+export function renderApp(root, { products = SAMPLE_PRODUCTS } = {}) {
   root.replaceChildren(
     buildHeader(),
-    h('main', { attrs: { id: 'konten-utama' } }, [buildHero(), buildCatalog(products, summary)]),
+    h('main', { attrs: { id: 'konten-utama' } }, [
+      buildHero(),
+      buildCategories(products),
+      buildCatalog(products),
+    ]),
     buildFooter(),
   );
-
-  document.title = 'PADISEHAT — Pupuk & Bibit untuk Panen Sehat';
+  document.title = 'PadiSehat — Kebutuhan Pertanian Petani Lokal';
 }
