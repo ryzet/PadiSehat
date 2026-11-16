@@ -39,7 +39,7 @@ function buildHeader(activeView, navigate) {
     h('a', { class: `nav__link${activeView === 'katalog' ? ' nav__link--active' : ''}`, text: 'Katalog', attrs: { href: '#katalog', 'aria-current': activeView === 'katalog' ? 'page' : null } }),
     h('a', { class: `nav__link${activeView === 'dashboard' ? ' nav__link--active' : ''}`, text: 'Dashboard', attrs: { href: '#dashboard', 'aria-current': activeView === 'dashboard' ? 'page' : null } }),
   ]);
-  nav.querySelectorAll('button').forEach((link, index) => {
+  nav.querySelectorAll('a').forEach((link, index) => {
     link.addEventListener('click', (event) => {
       event.preventDefault();
       navigate(index === 0 ? 'katalog' : 'dashboard');
