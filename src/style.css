@@ -750,3 +750,62 @@ html { scroll-behavior: smooth; scroll-padding-top: 88px; }
   .sort-wrap { width: 100%; }
   .category-chips { grid-column: 1; }
 }
+
+
+/* Dashboard demo dan formulir CRUD */
+.dashboard-page { padding-top: 42px; padding-bottom: 64px; min-height: 65vh; }
+.dashboard-heading, .dashboard-table-heading { display:flex; align-items:center; justify-content:space-between; gap:18px; }
+.dashboard-title { margin-top:3px; font-size:clamp(30px,4vw,42px); }
+.dashboard-subtitle, .dashboard-table-note { margin-top:7px; color:var(--teks-sekunder); font-size:14px; }
+.dashboard-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin:28px 0; }
+.metric-card { display:grid; grid-template-columns:auto 1fr; align-items:center; column-gap:13px; row-gap:2px; padding:20px; border:1px solid var(--garis); border-radius:var(--radius-lg); background:var(--putih); box-shadow:var(--shadow-sm); }
+.metric-card__icon { grid-row:span 2; display:grid; place-items:center; width:46px; height:46px; border-radius:14px; background:var(--hijau-lembut); font-size:23px; }
+.metric-card__value { font-family:var(--font-judul); font-size:27px; line-height:1.1; font-variant-numeric:tabular-nums; }
+.metric-card__label { color:var(--teks-sekunder); font-size:12px; }
+.dashboard-form-panel, .dashboard-table-panel { padding:24px; border:1px solid var(--garis); border-radius:var(--radius-lg); background:var(--putih); box-shadow:var(--shadow-sm); }
+.dashboard-form-panel { margin-bottom:22px; }
+.dashboard-form-panel[hidden] { display:none; }
+.dashboard-panel-title { font-size:21px; }
+.product-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-top:20px; }
+.form-field { display:flex; flex-direction:column; gap:6px; min-width:0; }
+.form-field--nama, .form-field--kategori, .form-field--deskripsi, .form-field--imageUrl, .form-field--unggulan, .form-actions { grid-column:1 / -1; }
+.form-field label { color:var(--hijau-tua); font-size:13px; font-weight:700; }
+.form-field input:not([type="checkbox"]), .form-field select, .form-field textarea { width:100%; min-height:44px; padding:10px 12px; border:1px solid var(--garis-input); border-radius:var(--radius-md); background:#fff; color:var(--hijau-tua); font:inherit; font-size:14px; }
+.form-field textarea { min-height:94px; resize:vertical; }
+.form-field input[type="checkbox"] { width:18px; height:18px; accent-color:var(--hijau-daun); }
+.form-field--unggulan { flex-direction:row; align-items:center; gap:10px; }
+.form-field--unggulan label { order:2; }
+.form-field--unggulan input { order:1; }
+.form-field input[aria-invalid="true"], .form-field select[aria-invalid="true"], .form-field textarea[aria-invalid="true"] { border-color:var(--galat); }
+.field-error { min-height:0; color:var(--galat); font-size:12px; }
+.field-error:empty { display:none; }
+.form-actions { display:flex; justify-content:flex-end; gap:10px; padding-top:8px; border-top:1px solid var(--garis); }
+.dashboard-table-heading { margin-bottom:18px; }
+.table-scroll { overflow-x:auto; }
+.dashboard-table { width:100%; border-collapse:collapse; text-align:left; font-size:13px; }
+.dashboard-table th { padding:12px 14px; background:var(--hijau-lembut); color:var(--hijau-tua); font-weight:700; white-space:nowrap; }
+.dashboard-table td { padding:14px; border-bottom:1px solid var(--garis); vertical-align:middle; }
+.dashboard-table tbody tr:last-child td { border-bottom:0; }
+.table-product-name { min-width:190px; font-weight:700; }
+.table-actions { display:flex; gap:7px; }
+.table-action { min-height:34px; padding:0 11px; border:1px solid var(--garis-input); border-radius:8px; background:var(--putih); color:var(--hijau-daun); font:inherit; font-weight:700; cursor:pointer; }
+.table-action--delete { border-color:#e8caca; color:var(--galat); }
+.reset-demo-button { white-space:nowrap; }
+.dashboard-storage-note { margin-top:18px; color:var(--teks-sekunder); font-size:12px; }
+.app-toast { position:fixed; right:22px; bottom:22px; z-index:100; max-width:min(360px,calc(100vw - 32px)); padding:14px 18px; border-radius:var(--radius-md); background:var(--hijau-tua); color:var(--putih); box-shadow:var(--shadow-lg); font-size:14px; }
+.button--secondary { border:1px solid var(--garis-input); }
+.button:disabled { opacity:.55; cursor:not-allowed; }
+@media (max-width:767px) {
+ .dashboard-page { padding-top:28px; }
+ .dashboard-heading { align-items:flex-start; flex-direction:column; }
+ .dashboard-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:20px 0; }
+ .metric-card { padding:14px; column-gap:9px; }
+ .metric-card__icon { width:38px; height:38px; font-size:19px; }
+ .metric-card__value { font-size:23px; }
+ .dashboard-form-panel, .dashboard-table-panel { padding:16px; }
+ .product-form { grid-template-columns:1fr; gap:13px; }
+ .form-field--nama, .form-field--kategori, .form-field--deskripsi, .form-field--imageUrl, .form-field--unggulan, .form-actions { grid-column:1; }
+ .dashboard-table-heading { align-items:flex-start; flex-direction:column; }
+ .dashboard-table-heading .button { width:100%; }
+ .app-toast { right:16px; bottom:16px; }
+}
