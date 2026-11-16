@@ -46,11 +46,14 @@ function buildHeader(activeView, navigate) {
     });
   });
 
+  const cta = h('a', { class: 'header__cta', text: activeView === 'dashboard' ? 'Lihat Toko' : 'Kelola Produk', attrs: { href: activeView === 'dashboard' ? '#katalog' : '#dashboard' } });
+  cta.addEventListener('click', (event) => {
+    event.preventDefault();
+    navigate(activeView === 'dashboard' ? 'katalog' : 'dashboard');
+  });
+
   return h('header', { class: 'site-header' }, [
-    h('div', { class: 'container header__inner' }, [
-      brand, nav,
-      h('a', { class: 'header__cta', text: activeView === 'dashboard' ? 'Lihat Toko' : 'Kelola Produk', attrs: { href: activeView === 'dashboard' ? '#katalog' : '#dashboard' } }),
-    ]),
+    h('div', { class: 'container header__inner' }, [brand, nav, cta]),
   ]);
 }
 
