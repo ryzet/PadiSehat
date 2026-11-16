@@ -24,7 +24,8 @@ export function normalizeProduct(raw) {
 
   if (!id || nama.length < 3 || nama.length > 60) return null;
   if (!VALID_CATEGORIES.includes(kategori)) return null;
-  if (!isIntegerAtLeastZero(raw.harga) || !isIntegerAtLeastZero(raw.stok)) return null;
+  if (typeof raw.harga !== 'number' || !Number.isFinite(raw.harga) || raw.harga < 0) return null;
+  if (!isIntegerAtLeastZero(raw.stok)) return null;
   if (deskripsi.length < 10 || deskripsi.length > 300) return null;
   if (raw.imageUrl !== undefined && typeof raw.imageUrl !== 'string') return null;
   if (raw.unggulan !== undefined && typeof raw.unggulan !== 'boolean') return null;
