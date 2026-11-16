@@ -809,3 +809,23 @@ html { scroll-behavior: smooth; scroll-padding-top: 88px; }
  .dashboard-table-heading .button { width:100%; }
  .app-toast { right:16px; bottom:16px; }
 }
+
+
+/* Perbaikan aksesibilitas navigasi dan kontrol data dashboard */
+.site-nav { position: relative; z-index: 5; }
+.site-nav .nav__link { position: relative; z-index: 6; pointer-events: auto; cursor: pointer; }
+.header__cta {
+  border: 0; font: inherit; font-size: 13px; cursor: pointer;
+  position: relative; z-index: 6; pointer-events: auto;
+}
+.dashboard-data-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
+.dashboard-data-actions .button { white-space:nowrap; }
+@media (max-width:767px) {
+  .header__cta { display:inline-flex; }
+  .header__inner { flex-wrap:wrap; padding-block:10px; }
+  .site-nav { order:3; width:100%; justify-content:center; padding:7px 0 2px; }
+  .dashboard-data-actions { width:100%; justify-content:flex-start; }
+}
+@media (max-width:480px) {
+  .dashboard-data-actions .button { flex:1 1 120px; }
+}
