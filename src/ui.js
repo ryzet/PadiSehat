@@ -448,9 +448,6 @@ function buildDashboard(products, onChange) {
     if (values.harga === '' || !Number.isFinite(Number(values.harga)) || Number(values.harga) < 0) errors.harga.textContent = 'Harga wajib berupa angka bulat minimal 0.';
     if (values.stok === '' || !Number.isFinite(Number(values.stok)) || !Number.isInteger(Number(values.stok)) || Number(values.stok) < 0) errors.stok.textContent = 'Stok wajib berupa bilangan bulat minimal 0.';
     if (values.deskripsi.length < 10 || values.deskripsi.length > 300) errors.deskripsi.textContent = 'Deskripsi wajib 10–300 karakter.';
-    if (fields.imageUrl.value.trim() && !/^\/(?:img\/)[\w./-]+\.svg$/i.test(fields.imageUrl.value.trim())) {
-      errors.imageUrl.textContent = 'Gunakan jalur placeholder lokal, misalnya /img/produk.svg.';
-    }
     Object.entries(errors).forEach(([key, error]) => {
       if (error.textContent) fields[key].setAttribute('aria-invalid', 'true');
     });
