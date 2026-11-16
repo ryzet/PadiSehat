@@ -21,13 +21,14 @@ export function normalizeProduct(raw) {
   const deskripsi = typeof raw.deskripsi === 'string' ? raw.deskripsi.trim() : '';
   const id = typeof raw.id === 'string' ? raw.id.trim() : '';
   const imageUrl = typeof raw.imageUrl === 'string' ? raw.imageUrl.trim() : '';
+  const validImage = imageUrl === '' || /^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(imageUrl) || /^\/img\/[\w./-]+\.svg$/i.test(imageUrl);
 
   if (!id || nama.length < 3 || nama.length > 60) return null;
   if (!VALID_CATEGORIES.includes(kategori)) return null;
   if (typeof raw.harga !== 'number' || !Number.isFinite(raw.harga) || raw.harga < 0) return null;
   if (!isIntegerAtLeastZero(raw.stok)) return null;
   if (deskripsi.length < 10 || deskripsi.length > 300) return null;
-  if (raw.imageUrl !== undefined && typeof raw.imageUrl !== 'string') return null;
+  if (raw.imageUrl !== undefined && (typeof raw.imageUrl !== 'string' || !validImage)) return null;
   if (raw.unggulan !== undefined && typeof raw.unggulan !== 'boolean') return null;
 
   return { id, nama, kategori, harga: raw.harga, stok: raw.stok, deskripsi, imageUrl, unggulan: raw.unggulan === true };
