@@ -33,7 +33,7 @@ export function normalizeProduct(raw) {
 }
 
 export function validateProducts(value) {
-  if (!Array.isArray(value) || value.length === 0) throw new Error('File harus berisi array produk yang tidak kosong.');
+  if (!Array.isArray(value)) throw new Error('File harus berisi array produk.');
   const products = value.map(normalizeProduct);
   if (products.some((product) => product === null)) {
     throw new Error('Data produk tidak valid. Periksa nama, kategori, harga, stok, dan field lainnya.');
@@ -69,6 +69,18 @@ export function loadProducts() {
   }
 
   if (raw === null) {
+    // Migrasi transparan dari key demo lama agar data pengguna tidak tertinggal.
+    try {
+      const legacyRaw = localStorage.getItem('padisehat.products.v1');
+      if (legacyRaw !== null) {
+        const legacyProducts = validateProducts(JSON.parse(legacyRaw));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(legacyProducts));
+        storageNotice = 'Data produk dari penyimpanan versi sebelumnya berhasil dipindahkan.';
+        return legacyProducts;
+      }
+    } catch {
+      // Jika data lama rusak, lanjutkan dengan data contoh tanpa mengubah key baru.
+    }
     const seed = createSeedProducts();
     saveProducts(seed);
     return seed;
