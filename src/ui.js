@@ -1,4 +1,5 @@
 import { SAMPLE_PRODUCTS } from './products.js';
+import { filterProducts } from './store.js';
 
 const ASSET_BASE = import.meta.env.BASE_URL;
 
@@ -142,17 +143,108 @@ function buildProductCard(product) {
 }
 
 function buildCatalog(products) {
-  return h('section', { class: 'section catalog-section container', attrs: { id: 'produk', 'aria-labelledby': 'produk-title' } }, [
+  const categories = [...new Set(products.map((product) => product.kategori))]
+    .sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' }));
+  const controls = h('div', { class: 'catalog-toolbar', attrs: { 'aria-label': 'Pencarian dan penyaringan produk' } });
+  const searchWrap = h('div', { class: 'search-wrap' }, [
+    h('span', { class: 'search-icon', text: '⌕', attrs: { 'aria-hidden': 'true' } }),
+    h('label', { class: 'visually-hidden', text: 'Cari produk', attrs: { for: 'product-search' } }),
+  ]);
+  const search = h('input', {
+    class: 'search-input',
+    attrs: { id: 'product-search', type: 'search', placeholder: 'Cari pupuk, benih, atau bibit…', autocomplete: 'off' },
+  });
+  const clearSearch = h('button', {
+    class: 'search-clear',
+    text: '×',
+    attrs: { type: 'button', 'aria-label': 'Hapus pencarian', hidden: '' },
+  });
+  searchWrap.append(search, clearSearch);
+
+  const chips = h('div', { class: 'category-chips', attrs: { role: 'group', 'aria-label': 'Filter kategori' } });
+  const sortLabel = h('label', { class: 'visually-hidden', text: 'Urutkan produk', attrs: { for: 'product-sort' } });
+  const sort = h('select', { class: 'sort-select', attrs: { id: 'product-sort' } }, [
+    h('option', { text: 'Unggulan & Nama A–Z', attrs: { value: 'unggulan' } }),
+    h('option', { text: 'Nama A–Z', attrs: { value: 'nama' } }),
+    h('option', { text: 'Nama Z–A', attrs: { value: 'nama-desc' } }),
+    h('option', { text: 'Harga termurah → termahal', attrs: { value: 'harga-asc' } }),
+    h('option', { text: 'Harga termahal → termurah', attrs: { value: 'harga-desc' } }),
+    h('option', { text: 'Stok tersedikit → terbanyak', attrs: { value: 'stok-asc' } }),
+  ]);
+  const sortWrap = h('div', { class: 'sort-wrap' }, [sortLabel, sort]);
+  controls.append(searchWrap, chips, sortWrap);
+
+  const count = h('p', { class: 'results-count', attrs: { 'aria-live': 'polite' } });
+  const grid = h('div', { class: 'product-grid' });
+  const empty = h('div', { class: 'empty-state', attrs: { hidden: '' } }, [
+    h('span', { class: 'empty-state__icon', text: '🌱', attrs: { 'aria-hidden': 'true' } }),
+    h('h3', { text: 'Produk tidak ditemukan' }),
+    h('p', { text: 'Coba kata kunci lain atau atur ulang filter pencarian.' }),
+    h('button', { class: 'button button--primary', text: 'Reset filter', attrs: { type: 'button' } }),
+  ]);
+  const resetButton = empty.querySelector('button');
+
+  let state = { query: '', kategori: 'Semua Kategori', sort: 'unggulan' };
+  const render = () => {
+    const visible = filterProducts(products, state);
+    count.textContent = `Menampilkan ${visible.length} dari ${products.length} produk`;
+    grid.replaceChildren(...visible.map(buildProductCard));
+    grid.hidden = visible.length === 0;
+    empty.hidden = visible.length !== 0;
+    clearSearch.hidden = state.query.length === 0;
+    chips.replaceChildren();
+    ['Semua Kategori', ...categories].forEach((category) => {
+      const active = state.kategori.toLocaleLowerCase('id-ID') === category.toLocaleLowerCase('id-ID');
+      const chip = h('button', {
+        class: `category-chip${active ? ' category-chip--active' : ''}`,
+        text: category,
+        attrs: { type: 'button', 'aria-pressed': String(active) },
+      });
+      chip.addEventListener('click', () => {
+        state = { ...state, kategori: category };
+        render();
+      });
+      chips.append(chip);
+    });
+  };
+
+  search.addEventListener('input', () => {
+    state = { ...state, query: search.value };
+    render();
+  });
+  clearSearch.addEventListener('click', () => {
+    search.value = '';
+    state = { ...state, query: '' };
+    search.focus();
+    render();
+  });
+  sort.addEventListener('change', () => {
+    state = { ...state, sort: sort.value };
+    render();
+  });
+  resetButton.addEventListener('click', () => {
+    state = { query: '', kategori: 'Semua Kategori', sort: 'unggulan' };
+    search.value = '';
+    sort.value = 'unggulan';
+    render();
+    search.focus();
+  });
+
+  const section = h('section', { class: 'section catalog-section container', attrs: { id: 'produk', 'aria-labelledby': 'produk-title' } }, [
     h('div', { class: 'section__head' }, [
       h('div', {}, [
         h('p', { class: 'section__eyebrow', text: 'PRODUK PILIHAN' }),
         h('h2', { class: 'section__title', text: 'Kebutuhan Pertanianmu', attrs: { id: 'produk-title' } }),
         h('p', { class: 'section__intro', text: 'Produk pilihan untuk membantu aktivitas tanam dari awal hingga perawatan.' }),
       ]),
-      h('p', { class: 'section__meta', text: `Menampilkan ${products.length} produk` }),
     ]),
-    h('div', { class: 'product-grid' }, products.map(buildProductCard)),
+    controls,
+    count,
+    grid,
+    empty,
   ]);
+  render();
+  return section;
 }
 
 function buildFooter() {
