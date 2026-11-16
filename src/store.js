@@ -144,7 +144,7 @@ export function filterProducts(products, { query = '', kategori = 'Semua Kategor
  */
 export function buildWhatsAppUrl(nomor, produk) {
   const phone = typeof nomor === 'string' ? nomor.trim() : '';
-  if (!/^\\+[1-9]\\d{7,14}$/.test(phone)) {
+  if (!/^\+[1-9]\d{7,14}$/.test(phone)) {
     throw new Error('Nomor WhatsApp harus memakai format internasional E.164, contoh +6281234567890.');
   }
   if (!produk || typeof produk.nama !== 'string' || !produk.nama.trim()) {
