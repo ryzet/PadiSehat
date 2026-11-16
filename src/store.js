@@ -1,40 +1,46 @@
 import { SAMPLE_PRODUCTS } from './products.js';
 
-/** Satu-satunya kunci penyimpanan produk (SPEC F-11). */
-export const STORAGE_KEY = 'padisehat.products.v1';
+/** Kategori resmi yang boleh digunakan pada katalog PadiSehat. */
+export const VALID_CATEGORIES = Object.freeze(['Pupuk', 'Benih', 'Bibit', 'Media Tanam']);
+
+/** Kunci penyimpanan versi 1 sesuai kontrak aplikasi. */
+export const STORAGE_KEY = 'padisehat:products:v1';
 
 const isIntegerAtLeastZero = (value) => Number.isInteger(value) && value >= 0;
+let storageNotice = '';
 
-/**
- * Memvalidasi satu objek produk. Mengembalikan objek bersih atau null bila tidak valid.
- * Hanya delapan field model yang dipertahankan; field lain dibuang.
- */
+export function getStorageNotice() {
+  return storageNotice;
+}
+
+/** Validasi ketat satu objek produk; data tidak valid tidak pernah disimpan. */
 export function normalizeProduct(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
-
   const nama = typeof raw.nama === 'string' ? raw.nama.trim() : '';
   const kategori = typeof raw.kategori === 'string' ? raw.kategori.trim() : '';
   const deskripsi = typeof raw.deskripsi === 'string' ? raw.deskripsi.trim() : '';
   const id = typeof raw.id === 'string' ? raw.id.trim() : '';
   const imageUrl = typeof raw.imageUrl === 'string' ? raw.imageUrl.trim() : '';
 
-  if (id.length === 0) return null;
-  if (nama.length < 3 || nama.length > 60) return null;
-  if (kategori.length < 2 || kategori.length > 30) return null;
-  if (!isIntegerAtLeastZero(raw.harga)) return null;
-  if (!isIntegerAtLeastZero(raw.stok)) return null;
+  if (!id || nama.length < 3 || nama.length > 60) return null;
+  if (!VALID_CATEGORIES.includes(kategori)) return null;
+  if (!isIntegerAtLeastZero(raw.harga) || !isIntegerAtLeastZero(raw.stok)) return null;
   if (deskripsi.length < 10 || deskripsi.length > 300) return null;
+  if (raw.imageUrl !== undefined && typeof raw.imageUrl !== 'string') return null;
+  if (raw.unggulan !== undefined && typeof raw.unggulan !== 'boolean') return null;
 
-  return {
-    id,
-    nama,
-    kategori,
-    harga: raw.harga,
-    stok: raw.stok,
-    deskripsi,
-    imageUrl,
-    unggulan: raw.unggulan === true,
-  };
+  return { id, nama, kategori, harga: raw.harga, stok: raw.stok, deskripsi, imageUrl, unggulan: raw.unggulan === true };
+}
+
+export function validateProducts(value) {
+  if (!Array.isArray(value) || value.length === 0) throw new Error('File harus berisi array produk yang tidak kosong.');
+  const products = value.map(normalizeProduct);
+  if (products.some((product) => product === null)) {
+    throw new Error('Data produk tidak valid. Periksa nama, kategori, harga, stok, dan field lainnya.');
+  }
+  const ids = products.map((product) => product.id);
+  if (new Set(ids).size !== ids.length) throw new Error('Setiap produk harus memiliki ID yang unik.');
+  return products;
 }
 
 export function createSeedProducts() {
@@ -43,23 +49,22 @@ export function createSeedProducts() {
 
 export function saveProducts(products) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+    const valid = validateProducts(products);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(valid));
     return true;
   } catch {
     return false;
   }
 }
 
-/**
- * Memuat produk dari localStorage. Data kosong, rusak, atau tidak valid
- * diganti dengan 8 produk contoh agar aplikasi tidak pernah blank.
- */
+/** Memuat data secara aman; JSON rusak atau struktur tidak valid dipulihkan ke data contoh. */
 export function loadProducts() {
-  let raw = null;
-
+  storageNotice = '';
+  let raw;
   try {
     raw = localStorage.getItem(STORAGE_KEY);
   } catch {
+    storageNotice = 'Penyimpanan browser tidak dapat diakses. Data contoh ditampilkan sementara.';
     return createSeedProducts();
   }
 
@@ -69,30 +74,35 @@ export function loadProducts() {
     return seed;
   }
 
-  let parsed;
   try {
-    parsed = JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    const valid = validateProducts(parsed);
+    return valid;
   } catch {
     const seed = createSeedProducts();
-    saveProducts(seed);
+    storageNotice = 'Data produk tersimpan rusak atau tidak valid. Data contoh telah dipulihkan.';
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(seed)); } catch { /* fallback tetap ditampilkan */ }
     return seed;
   }
+}
 
-  if (!Array.isArray(parsed)) {
-    const seed = createSeedProducts();
-    saveProducts(seed);
-    return seed;
+/** Mengurai JSON impor dan memvalidasi seluruh data sebelum penyimpanan. */
+export function importProductsJson(jsonText) {
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonText);
+  } catch {
+    throw new Error('File bukan JSON yang valid. Data lama tetap aman.');
   }
-
-  const valid = parsed.map(normalizeProduct).filter(Boolean);
-  if (valid.length === 0) {
-    const seed = createSeedProducts();
-    saveProducts(seed);
-    return seed;
+  try {
+    return validateProducts(parsed);
+  } catch (error) {
+    throw new Error(`${error.message} Data lama tetap aman.`);
   }
+}
 
-  if (valid.length !== parsed.length) saveProducts(valid);
-  return valid;
+export function exportProductsJson(products) {
+  return JSON.stringify(validateProducts(products), null, 2);
 }
 
 /** Ringkasan dashboard: total produk, total stok, jumlah kategori unik. */
