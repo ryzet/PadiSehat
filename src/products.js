@@ -1,4 +1,10 @@
 /**
+ * Nomor WhatsApp pemilik dalam format internasional E.164.
+ * Ganti nomor contoh ini dengan nomor WhatsApp resmi sebelum website dipublikasikan.
+ */
+export const WHATSAPP_NUMBER = '+6281234567890';
+
+/**
  * Data 8 produk contoh PADISEHAT.
  * Semua data bersifat nonpribadi: tanpa nama orang, nomor telepon, alamat, atau email.
  * Harga dalam Rupiah (bilangan bulat) dan bukan klaim harga pasar.
