@@ -829,3 +829,19 @@ html { scroll-behavior: smooth; scroll-padding-top: 88px; }
 @media (max-width:480px) {
   .dashboard-data-actions .button { flex:1 1 120px; }
 }
+
+
+/* Unggah dan pratinjau gambar produk */
+.form-field--imageUrl input[type="file"] {
+  width:100%; min-height:44px; padding:9px 10px;
+  border:1px dashed var(--garis-input); border-radius:var(--radius-md);
+  background:var(--hijau-lembut); color:var(--hijau-tua); font:inherit; font-size:13px;
+}
+.dashboard-image-preview {
+  display:block; width: min(100%, 220px); max-height:160px; object-fit:contain;
+  margin-top:8px; border:1px solid var(--garis); border-radius:var(--radius-md);
+  background:var(--hijau-lembut);
+}
+.dashboard-image-preview[hidden] { display:none; }
+.image-upload-hint { color:var(--teks-sekunder); font-size:12px; }
+.card__image { display:block; width:100%; height:100%; object-fit:cover; }
