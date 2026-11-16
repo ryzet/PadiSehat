@@ -315,7 +315,7 @@ function buildDashboard(products, onChange) {
 
   addField('nama', 'Nama produk *', 'text', { attrs: { minlength: '3', maxlength: '60', placeholder: 'Contoh: Pupuk NPK Padi 1 kg' } });
   addField('kategori', 'Kategori *', 'select', { values: categories });
-  addField('harga', 'Harga (Rp) *', 'number', { attrs: { min: '0', step: '1', placeholder: '45000' } });
+  addField('harga', 'Harga (Rp) *', 'number', { attrs: { min: '0', step: 'any', placeholder: '45000' } });
   addField('stok', 'Stok *', 'number', { attrs: { min: '0', step: '1', placeholder: '24' } });
   addField('deskripsi', 'Deskripsi *', 'textarea');
   addField('imageUrl', 'Jalur gambar (opsional)', 'text', { required: false, attrs: { placeholder: '/img/nama-produk.svg' } });
@@ -404,7 +404,7 @@ function buildDashboard(products, onChange) {
     if (!values.nama) errors.nama.textContent = 'Nama produk wajib diisi.';
     else if (values.nama.length < 3 || values.nama.length > 60) errors.nama.textContent = 'Nama harus terdiri dari 3–60 karakter.';
     if (!allowedCategories.has(values.kategori)) errors.kategori.textContent = 'Pilih kategori yang tersedia.';
-    if (values.harga === '' || !Number.isFinite(Number(values.harga)) || !Number.isInteger(Number(values.harga)) || Number(values.harga) < 0) errors.harga.textContent = 'Harga wajib berupa angka bulat minimal 0.';
+    if (values.harga === '' || !Number.isFinite(Number(values.harga)) || Number(values.harga) < 0) errors.harga.textContent = 'Harga wajib berupa angka bulat minimal 0.';
     if (values.stok === '' || !Number.isFinite(Number(values.stok)) || !Number.isInteger(Number(values.stok)) || Number(values.stok) < 0) errors.stok.textContent = 'Stok wajib berupa bilangan bulat minimal 0.';
     if (values.deskripsi.length < 10 || values.deskripsi.length > 300) errors.deskripsi.textContent = 'Deskripsi wajib 10–300 karakter.';
     if (fields.imageUrl.value.trim() && !/^\/(?:img\/)[\w./-]+\.svg$/i.test(fields.imageUrl.value.trim())) {
