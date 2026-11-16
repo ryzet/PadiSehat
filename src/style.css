@@ -693,3 +693,60 @@ html { scroll-behavior: smooth; scroll-padding-top: 88px; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 }
+
+
+/* Toolbar pencarian, filter kategori, sorting, dan empty state */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+.catalog-toolbar {
+  display: grid; grid-template-columns: minmax(220px, 1fr) auto auto;
+  align-items: center; gap: 14px; margin: 22px 0 14px;
+}
+.search-wrap { position: relative; display: flex; align-items: center; }
+.search-icon { position: absolute; left: 15px; color: var(--teks-sekunder); font-size: 25px; line-height: 1; }
+.search-input, .sort-select {
+  width: 100%; min-height: 48px; border: 1px solid var(--garis-input);
+  border-radius: var(--radius-md); background: var(--putih); color: var(--hijau-tua);
+  font: inherit; font-size: 14px;
+}
+.search-input { padding: 0 42px; }
+.search-input:focus, .sort-select:focus { outline: 2px solid var(--fokus); outline-offset: 2px; }
+.search-clear {
+  position: absolute; right: 10px; width: 30px; height: 30px; border: 0;
+  border-radius: 50%; background: var(--krem-tua); color: var(--hijau-tua);
+  font-size: 20px; cursor: pointer;
+}
+.search-clear[hidden] { display: none; }
+.category-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.category-chip {
+  min-height: 36px; padding: 0 13px; border: 1px solid var(--garis-input);
+  border-radius: var(--radius-pill); background: var(--putih); color: var(--hijau-tua);
+  font: inherit; font-size: 12px; font-weight: 600; white-space: nowrap; cursor: pointer;
+}
+.category-chip--active { border-color: var(--hijau-daun); background: var(--hijau-daun); color: var(--putih); }
+.sort-wrap { min-width: 190px; }
+.sort-select { padding: 0 34px 0 12px; cursor: pointer; }
+.results-count { margin: 0 0 14px; color: var(--teks-sekunder); font-size: 13px; }
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 260px; padding: 32px 18px; border: 1px dashed var(--garis-input);
+  border-radius: var(--radius-lg); background: rgba(255,255,255,.65); text-align: center;
+}
+.empty-state[hidden], .product-grid[hidden] { display: none; }
+.empty-state__icon { margin-bottom: 10px; font-size: 42px; }
+.empty-state h3 { font-size: 20px; }
+.empty-state p { max-width: 38ch; margin: 7px 0 18px; color: var(--teks-sekunder); font-size: 13px; }
+@media (max-width: 900px) {
+  .catalog-toolbar { grid-template-columns: 1fr auto; }
+  .search-wrap { grid-column: 1 / -1; }
+  .category-chips { flex-wrap: nowrap; overflow-x: auto; padding: 2px 1px 7px; -webkit-overflow-scrolling: touch; }
+  .category-chips::-webkit-scrollbar { display: none; }
+  .sort-wrap { min-width: 0; width: min(100%, 260px); justify-self: end; }
+}
+@media (max-width: 480px) {
+  .catalog-toolbar { grid-template-columns: 1fr; gap: 10px; }
+  .sort-wrap { width: 100%; }
+  .category-chips { grid-column: 1; }
+}
