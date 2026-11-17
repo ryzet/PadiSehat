@@ -14,6 +14,7 @@ const databaseUrl = required('DATABASE_URL');
 const migrationDatabaseUrl = process.env.MIGRATION_DATABASE_URL?.trim() || databaseUrl;
 const frontendOrigin = required('FRONTEND_ORIGIN');
 const sessionSecret = required('SESSION_SECRET');
+const databaseSsl = process.env.DATABASE_SSL === 'true';
 
 if (!['postgres:', 'postgresql:'].includes(new URL(databaseUrl).protocol)) {
   throw new Error('DATABASE_URL harus menggunakan protokol PostgreSQL.');
@@ -28,6 +29,9 @@ if (!['http:', 'https:'].includes(frontendUrl.protocol)) {
 }
 if (nodeEnv === 'production' && frontendUrl.protocol !== 'https:') {
   throw new Error('FRONTEND_ORIGIN wajib HTTPS pada production.');
+}
+if (nodeEnv === 'production' && !databaseSsl) {
+  throw new Error('DATABASE_SSL=true wajib pada production.');
 }
 if (sessionSecret.length < 32) {
   throw new Error('SESSION_SECRET minimal 32 karakter acak.');
@@ -48,7 +52,7 @@ export const config = Object.freeze({
   port,
   databaseUrl,
   migrationDatabaseUrl,
-  databaseSsl: process.env.DATABASE_SSL === 'true',
+  databaseSsl,
   frontendOrigin: frontendUrl.origin,
   sessionSecret,
   sessionCookieName: process.env.SESSION_COOKIE_NAME || 'padisehat.sid',
