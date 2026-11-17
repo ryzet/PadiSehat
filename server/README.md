@@ -46,10 +46,15 @@ Edit .env:
 - Buat SESSION_SECRET acak minimal 32 karakter.
 - Pastikan FRONTEND_ORIGIN cocok persis dengan alamat frontend.
 
-Jalankan migrasi dan API:
+Jalankan migrasi terlebih dahulu menggunakan MIGRATION_DATABASE_URL:
 
 ~~~powershell
 npm run migrate
+~~~
+
+Setelah role runtime dibuat dan DATABASE_URL diarahkan ke role tersebut (lihat bagian berikut), jalankan API:
+
+~~~powershell
 npm run dev
 ~~~
 
