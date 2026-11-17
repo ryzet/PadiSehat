@@ -20,8 +20,7 @@ CREATE TABLE products (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id uuid NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
   name varchar(60) NOT NULL CHECK (char_length(btrim(name)) BETWEEN 3 AND 60),
-  category varchar(30) NOT NULL
-    CHECK (category IN ('Pupuk', 'Benih', 'Bibit', 'Media Tanam')),
+  category varchar(30) NOT NULL CHECK (char_length(btrim(category)) BETWEEN 2 AND 30),
   price integer NOT NULL CHECK (price >= 0),
   stock integer NOT NULL CHECK (stock BETWEEN 0 AND 1000000),
   description varchar(300) NOT NULL
@@ -57,7 +56,6 @@ CREATE INDEX audit_logs_actor_created_idx
 CREATE INDEX audit_logs_entity_idx
   ON audit_logs (entity_type, entity_id, created_at DESC);
 
--- Skema yang dipakai connect-pg-simple untuk menyimpan sesi di PostgreSQL.
 CREATE TABLE user_sessions (
   sid varchar NOT NULL PRIMARY KEY,
   sess json NOT NULL,
@@ -66,9 +64,6 @@ CREATE TABLE user_sessions (
 
 CREATE INDEX user_sessions_expire_idx ON user_sessions (expire);
 
--- Pertahanan tambahan di tingkat database.
--- Server tetap selalu menyertakan owner_id pada setiap query CRUD; jangan memakai
--- kredensial Supabase service_role/role BYPASSRLS sebagai koneksi aplikasi.
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products FORCE ROW LEVEL SECURITY;
 
