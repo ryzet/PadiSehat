@@ -25,6 +25,8 @@ Belum termasuk: integrasi frontend, migrasi data localStorage, halaman login/reg
   - MIGRATION_DATABASE_URL: koneksi admin untuk menjalankan migrasi saja.
 - Frontend origin yang tepat, misalnya http://localhost:5173.
 
+Pada production, cookie SameSite=Lax mengharuskan frontend dan API berada pada site yang sama (misalnya app.example.com dan api.example.com), atau API diproxy melalui domain frontend. Jika frontend dan API berada pada domain berbeda-site, jangan langsung mengubah cookie ke SameSite=None; rancang ulang CORS, CSRF, dan cookie Secure secara sengaja.
+
 Jangan memakai Supabase service_role key sebagai koneksi runtime. Jangan menaruh kredensial database, session secret, atau service-role key di kode frontend.
 
 ## Menjalankan di Windows PowerShell
