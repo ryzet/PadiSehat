@@ -83,7 +83,7 @@ productsRouter.get('/', async (req, res) => {
 });
 
 productsRouter.get('/:id', async (req, res) => {
-  const id = productIdSchema.parse(req.params.id);
+  const id = parseBody(productIdSchema, req.params.id);
   const result = await pool.query(
     'SELECT id, name, category, price, stock, description, image_path, is_featured, created_at, updated_at '
     + 'FROM products WHERE id = $1 AND is_active = true LIMIT 1',
