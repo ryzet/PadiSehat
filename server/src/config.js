@@ -36,6 +36,9 @@ if (nodeEnv === 'production' && !databaseSsl) {
 if (sessionSecret.length < 32) {
   throw new Error('SESSION_SECRET minimal 32 karakter acak.');
 }
+if (nodeEnv === 'production' && sessionSecret.toLowerCase().includes('replace-this')) {
+  throw new Error('Ganti SESSION_SECRET contoh dengan nilai acak sebelum production.');
+}
 
 const port = Number(process.env.PORT || 3000);
 const sessionMaxAgeMs = Number(process.env.SESSION_MAX_AGE_MS || 604800000);
