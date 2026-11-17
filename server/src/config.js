@@ -11,11 +11,15 @@ function required(name) {
 
 const nodeEnv = process.env.NODE_ENV || 'development';
 const databaseUrl = required('DATABASE_URL');
+const migrationDatabaseUrl = process.env.MIGRATION_DATABASE_URL?.trim() || databaseUrl;
 const frontendOrigin = required('FRONTEND_ORIGIN');
 const sessionSecret = required('SESSION_SECRET');
 
 if (!['postgres:', 'postgresql:'].includes(new URL(databaseUrl).protocol)) {
   throw new Error('DATABASE_URL harus menggunakan protokol PostgreSQL.');
+}
+if (!['postgres:', 'postgresql:'].includes(new URL(migrationDatabaseUrl).protocol)) {
+  throw new Error('MIGRATION_DATABASE_URL harus menggunakan protokol PostgreSQL.');
 }
 
 const frontendUrl = new URL(frontendOrigin);
@@ -43,6 +47,7 @@ export const config = Object.freeze({
   isProduction: nodeEnv === 'production',
   port,
   databaseUrl,
+  migrationDatabaseUrl,
   databaseSsl: process.env.DATABASE_SSL === 'true',
   frontendOrigin: frontendUrl.origin,
   sessionSecret,
