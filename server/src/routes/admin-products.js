@@ -134,7 +134,7 @@ adminProductsRouter.post('/', async (req, res) => {
 });
 
 adminProductsRouter.patch('/:id', async (req, res) => {
-  const id = productIdSchema.parse(req.params.id);
+  const id = parseBody(productIdSchema, req.params.id);
   const data = parseBody(updateProductSchema, req.body);
   const entries = Object.entries(data);
   const assignments = entries.map(([key], index) => COLUMN_MAP[key] + ' = $' + (index + 3));
@@ -165,7 +165,7 @@ adminProductsRouter.patch('/:id', async (req, res) => {
 });
 
 adminProductsRouter.delete('/:id', async (req, res) => {
-  const id = productIdSchema.parse(req.params.id);
+  const id = parseBody(productIdSchema, req.params.id);
   await withUserTransaction(req.user, async (client) => {
     const result = await client.query(
       'UPDATE products SET is_active = false, updated_at = now() '
