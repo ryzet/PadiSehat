@@ -31,6 +31,12 @@ export function errorHandler(error, req, res, next) {
     });
   }
 
+  if (error?.type === 'entity.parse.failed') {
+    return res.status(400).json({
+      error: { code: 'INVALID_JSON', message: 'Format JSON tidak valid.' },
+    });
+  }
+
   console.error('API request failed:', error?.message || 'Unknown error');
   return res.status(500).json({
     error: { code: 'INTERNAL_ERROR', message: 'Terjadi kesalahan pada server.' },
