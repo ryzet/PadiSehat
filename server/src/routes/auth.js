@@ -164,11 +164,14 @@ authRouter.get('/me', requireAuth, (req, res) => {
 
 authRouter.post('/logout', async (req, res) => {
   if (req.session?.userId) {
-    await recordAuthAudit({
-      actorUserId: req.session.userId,
-      action: 'auth.logout',
-      request: req,
-    });
+    const existingUser = await pool.query('SELECT 1 FROM users WHERE id = $1', [req.session.userId]);
+    if (existingUser.rowCount > 0) {
+      await recordAuthAudit({
+        actorUserId: req.session.userId,
+        action: 'auth.logout',
+        request: req,
+      });
+    }
   }
 
   await new Promise((resolve, reject) => {
