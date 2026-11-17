@@ -11,6 +11,14 @@ import { config } from '../config.js';
 
 export const authRouter = Router();
 
+const ARGON2_OPTIONS = {
+  type: argon2.argon2id,
+  memoryCost: 19456,
+  timeCost: 2,
+  parallelism: 1,
+};
+const DUMMY_PASSWORD_HASH = argon2.hash(randomBytes(32).toString('base64url'), ARGON2_OPTIONS);
+
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 10,
@@ -69,17 +77,13 @@ authRouter.get('/csrf', (req, res) => {
   if (!req.session.csrfToken) {
     req.session.csrfToken = randomBytes(32).toString('base64url');
   }
+  res.set('Cache-Control', 'no-store');
   res.json({ csrfToken: req.session.csrfToken });
 });
 
 authRouter.post('/register', authLimiter, async (req, res) => {
   const data = parseBody(registerSchema, req.body);
-  const passwordHash = await argon2.hash(data.password, {
-    type: argon2.argon2id,
-    memoryCost: 19456,
-    timeCost: 2,
-    parallelism: 1,
-  });
+  const passwordHash = await argon2.hash(data.password, ARGON2_OPTIONS);
 
   const client = await pool.connect();
   let user;
@@ -127,15 +131,14 @@ authRouter.post('/login', authLimiter, async (req, res) => {
 
   const user = result.rows[0];
   let passwordMatches = false;
-  if (user && user.status === 'active') {
-    try {
-      passwordMatches = await argon2.verify(user.password_hash, data.password);
-    } catch {
-      passwordMatches = false;
-    }
+  try {
+    const hashToVerify = user?.password_hash || await DUMMY_PASSWORD_HASH;
+    passwordMatches = await argon2.verify(hashToVerify, data.password);
+  } catch {
+    passwordMatches = false;
   }
 
-  if (!user || !passwordMatches) {
+  if (!user || user.status !== 'active' || !passwordMatches) {
     await recordAuthAudit({
       action: 'auth.login_failed',
       request: req,
@@ -159,6 +162,7 @@ authRouter.post('/login', authLimiter, async (req, res) => {
 });
 
 authRouter.get('/me', requireAuth, (req, res) => {
+  res.set('Cache-Control', 'no-store');
   res.json({ user: req.user });
 });
 
