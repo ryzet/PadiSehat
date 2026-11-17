@@ -1,12 +1,21 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { pool } from './pool.js';
+import pg from 'pg';
+import { config } from '../config.js';
+
+const { Pool } = pg;
+const migrationPool = new Pool({
+  connectionString: config.migrationDatabaseUrl,
+  ssl: config.databaseSsl ? { rejectUnauthorized: true } : false,
+  max: 2,
+  connectionTimeoutMillis: 10000,
+});
 
 const MIGRATION_LOCK_ID = 72841026;
 const migrationsDirectory = fileURLToPath(new URL('../../migrations/', import.meta.url));
 
 async function migrate() {
-  const client = await pool.connect();
+  const client = await migrationPool.connect();
   let lockAcquired = false;
 
   try {
@@ -49,7 +58,7 @@ async function migrate() {
       await client.query('SELECT pg_advisory_unlock($1)', [MIGRATION_LOCK_ID]);
     }
     client.release();
-    await pool.end();
+    await migrationPool.end();
   }
 }
 
