@@ -14,6 +14,18 @@ test('produk valid diterima server', () => {
   assert.equal(createProductSchema.safeParse(validProduct).success, true);
 });
 
+test('kategori baru dengan panjang valid diterima', () => {
+  assert.equal(
+    createProductSchema.safeParse({ ...validProduct, kategori: 'Alat Kebun' }).success,
+    true,
+  );
+});
+
+test('kategori terlalu pendek atau panjang ditolak', () => {
+  assert.equal(createProductSchema.safeParse({ ...validProduct, kategori: 'A' }).success, false);
+  assert.equal(createProductSchema.safeParse({ ...validProduct, kategori: 'x'.repeat(31) }).success, false);
+});
+
 test('harga negatif ditolak', () => {
   assert.equal(createProductSchema.safeParse({ ...validProduct, harga: -1 }).success, false);
 });
